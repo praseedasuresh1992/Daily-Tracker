@@ -1,4 +1,4 @@
-// routes/taskRoutes.js
+
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/authMiddleware');
@@ -7,7 +7,7 @@ const {
   getTasks,
   updateTask,
   deleteTask
-} = require('../controllers/taskController');
+} = require('../controllers/taskControllers');
 
 router.use(auth);
 
