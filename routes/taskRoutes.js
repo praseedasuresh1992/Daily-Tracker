@@ -11,9 +11,9 @@ const {
 
 router.use(auth);
 
-router.post('/', createTask);
-router.get('/', getTasks);
-router.put('/:id', updateTask);
-router.delete('/:id', deleteTask);
+router.post('/', auth,createTask);
+router.get('/', auth,getTasks);
+router.put('/:id',auth, updateTask);
+router.delete('/:id',auth, deleteTask);
 
 module.exports = router;

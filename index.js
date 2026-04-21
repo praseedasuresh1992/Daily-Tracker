@@ -11,7 +11,18 @@ const app = express();
 const connectDb=require('./config/db');
 connectDb();
 
-app.use(cors());
+// CORS 
+const corsOptions = {
+  origin: [
+    'http://localhost:5173'
+  ],
+  credentials: true,  // 🔥 VERY IMPORTANT
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.use('/api/auth', require('./routes/authRoutes'));
