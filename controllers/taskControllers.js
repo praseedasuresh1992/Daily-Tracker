@@ -18,16 +18,26 @@ exports.getTasks = async (req, res) => {
 
 // -----------Update status-------------------------
 exports.updateTask = async (req, res) => {
-  const task = await Task.findById(req.params.id);
+  try {
+    const task = await Task.findOne({
+      _id: req.params.id,
+      user: req.user._id
+    });
 
-  if (!task) return res.status(404).json({ message: 'Task not found' });
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
 
-  task.status = req.body.status || task.status;
-  await task.save();
+    // 🔥 Toggle here
+    task.status = task.status === "done" ? "pending" : "done";
 
-  res.json(task);
+    await task.save();
+
+    res.json(task);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
-
 //-------------Delete-------------------------------
 exports.deleteTask = async (req, res) => {
   await Task.findByIdAndDelete(req.params.id);
