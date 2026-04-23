@@ -5,7 +5,8 @@ exports.createTask = async (req, res) => {
   const task = await Task.create({
     user: req.user.id,
     title: req.body.title,
-    description:req.body.description
+    description:req.body.description,
+    category:req.body.category
   });
   res.json(task);
 };

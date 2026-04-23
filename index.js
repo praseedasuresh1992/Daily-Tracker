@@ -27,6 +27,7 @@ app.use(express.json());
 
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/tasks', require('./routes/taskRoutes'));
+app.use("/api/categories", require('./routes/categoryRoutes'));
 
 app.listen(process.env.PORT||5000, () => {
   console.log(`Listening at port ${process.env.PORT}`);
