@@ -6,7 +6,8 @@ exports.createTask = async (req, res) => {
     user: req.user.id,
     title: req.body.title,
     description:req.body.description,
-    category:req.body.category
+    category:req.body.category,
+    amount:req.body.amount
   });
   res.json(task);
 };
