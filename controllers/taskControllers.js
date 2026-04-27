@@ -7,7 +7,9 @@ exports.createTask = async (req, res) => {
     title: req.body.title,
     description:req.body.description,
     category:req.body.category,
-    amount:req.body.amount
+    amount:req.body.amount,
+    taskDate:req.body.taskDate
+
   });
   res.json(task);
 };
