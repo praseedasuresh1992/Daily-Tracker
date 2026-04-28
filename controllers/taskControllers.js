@@ -16,17 +16,34 @@ exports.createTask = async (req, res) => {
 
 //----------- Get tasks---------------------------
 exports.getTasks = async (req, res) => {
-  const tasks = await Task.find({ user: req.user.id });
-  res.json(tasks);
+  try {
+    const { status } = req.query;
+console.log("USER:", req.user);
+    let filter = {
+      user: req.user.id
+    };
+
+    // apply status filter if exists
+    if (status) {
+      filter.status = status;
+    }
+
+    const tasks = await Task.find(filter);
+
+    res.json(tasks);
+  } catch (error) {
+    console.error(error); // 🔥 this will show real error
+    res.status(500).json({ message: error.message });
+  }
 };
 
 // -----------Update status-------------------------
 exports.updateTask = async (req, res) => {
   try {
     const task = await Task.findOne({
-      _id: req.params.id,
+      id: req.params.id,
       user: req.user._id
-    });
+    });``
 
     if (!task) {
       return res.status(404).json({ message: 'Task not found' });
