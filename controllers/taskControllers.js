@@ -40,10 +40,13 @@ console.log("USER:", req.user);
 // -----------Update status-------------------------
 exports.updateTask = async (req, res) => {
   try {
+    console.log ("function call success")
+    console.log(req.user.id)
+    console.log(req.params.id)
     const task = await Task.findOne({
-      id: req.params.id,
+      _id: req.params.id,
       user: req.user._id
-    });``
+    });
 
     if (!task) {
       return res.status(404).json({ message: 'Task not found' });
@@ -63,4 +66,34 @@ exports.updateTask = async (req, res) => {
 exports.deleteTask = async (req, res) => {
   await Task.findByIdAndDelete(req.params.id);
   res.json({ message: 'Task deleted' });
+};
+// ----------- getMonthlyCategorySummary-------------------
+
+exports.getMonthlyCategorySummary = async (req, res) => {
+  const { month, year } = req.query;
+  const userId = req.user.id;
+
+  const start = new Date(year, month - 1, 1);
+  const end = new Date(year, month, 1);
+
+  try {
+    const data = await Expense.aggregate([
+      {
+        $match: {
+          user: userId,
+          createdAt: { $gte: start, $lt: end },
+        },
+      },
+      {
+        $group: {
+          _id: "$category",
+          total: { $sum: "$amount" },
+        },
+      },
+    ]);
+
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
