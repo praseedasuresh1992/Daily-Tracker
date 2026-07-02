@@ -21,6 +21,10 @@ const taskSchema = new mongoose.Schema({
     default: "pending",
     enum: ["pending", "completed"],
   },
+  completedAt:{
+    type:Date,
+    default:null,
+  },
 
   // Workspace fields
   workspace: {
@@ -38,6 +42,10 @@ const taskSchema = new mongoose.Schema({
     ref: "User",
     default: null,
   },
+  isDeleted: {
+    type: Boolean,
+    default: false,
+  },  
 
   priority: {
     type: String,
@@ -46,5 +54,7 @@ const taskSchema = new mongoose.Schema({
   },
 
   dueDate: Date,
-});
+},
+{ timestamps:true }
+);
 module.exports = mongoose.model("task", taskSchema);

@@ -13,7 +13,7 @@ exports.createTask = async (req, res) => {
       taskDate,
       workspace,
     } = req.body;
-
+    console.log("REQ BODY:", req.body);
     const attachments = [];
 
     if (req.files) {
@@ -47,7 +47,7 @@ exports.createTask = async (req, res) => {
   }
 };
 // ----------Restore task------------------------
- exports.restoreTask = async (req, res) => {
+exports.restoreTask = async (req, res) => {
   try {
 
     const task = await Task.findByIdAndUpdate(
@@ -196,7 +196,7 @@ exports.getWorkspaceTasks = async (req, res) => {
       workspace: req.params.workspaceId,
       isDeleted: false,
     })
-    .populate("user", "name");
+      .populate("user", "name");
 
     res.json(tasks);
 
@@ -213,7 +213,7 @@ exports.uploadAttachment = async (req, res) => {
   try {
     console.log("REQ FILES:", req.files);
     console.log("TASK ID:", req.params.id);
-      console.log("ADD ATTACHMENT ROUTE HIT");
+    console.log("ADD ATTACHMENT ROUTE HIT");
     const task = await Task.findById(req.params.id);
 
     if (!task) {
@@ -234,25 +234,26 @@ exports.uploadAttachment = async (req, res) => {
 
     res.json(task);
   } catch (error) {
-     console.log("ATTACHMENT ERROR:");
+    console.log("ATTACHMENT ERROR:");
     console.log(error);
 
     res.status(500).json({
       message: error.message,
     });
   }
-};  
+};
 
 // -----------Update status-------------------------
 exports.updateTask = async (req, res) => {
   try {
-   
-  const task = await Task.findById(req.params.id);
+
+    const task = await Task.findById(req.params.id);
 
     if (!task) {
       return res.status(404).json({ message: 'Task not found' });
     }
-     const isCreator =
+    console.log("req.user:", req.user);
+    const isCreator =
       task.user?.toString() === req.user._id.toString();
 
     const isAssignedUser =
@@ -263,15 +264,28 @@ exports.updateTask = async (req, res) => {
         message: "Not authorized",
       });
     }
-    
 
     // 🔥 Toggle here
-task.status = req.body.status;
+    if (task.status === "pending") {
+      task.status = "completed"
+      task.completedAt = new Date();
+    }
+    else {
+      task.status = "pending";
+      task.completedAt = null;
+    }
+
     await task.save();
 
     res.json(task);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("UPDATE TASK ERROR:");
+    console.error(error);
+
+    res.status(500).json({
+      message: error.message,
+      stack: error.stack,
+    });
   }
 };
 //-------------Delete-------------------------------
