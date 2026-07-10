@@ -53,7 +53,11 @@ const taskSchema = new mongoose.Schema({
     default: "Medium",
   },
 
-  dueDate: Date,
+  taskDate:{
+type:Date,
+
+  },
+  
 },
 { timestamps:true }
 );

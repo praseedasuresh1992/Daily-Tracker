@@ -6,6 +6,7 @@ const {authUser} = require("../middleware/authMiddleware");
 
 const {
   createTask,
+  updateTaskStatus,
   updateTask,
   deleteTask,
   getMonthlyCategorySummary,
@@ -49,7 +50,8 @@ router.get(
   getWorkspaceTasks
 );
 
-router.put("/:id", updateTask);
+router.put("/:id", updateTaskStatus);
+router.put("/update/:id", updateTask);
 
 router.put(
   "/restore/:id",

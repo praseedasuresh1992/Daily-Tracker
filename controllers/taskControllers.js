@@ -89,7 +89,8 @@ exports.getPersonalTasks = async (req, res) => {
       filter.status = status;
     }
 
-    const tasks = await Task.find(filter);
+    const tasks = await Task.find(filter)
+      .populate("category","name ")
 
     res.json(tasks);
   } catch (error) {
@@ -242,9 +243,48 @@ exports.uploadAttachment = async (req, res) => {
     });
   }
 };
+// ------------Update task-----------------------
+exports.updateTask= async (req,res)=>{
+try {
+  const task= await Task.findById(req.params.id);
+  if(!task){
+    return res.status(404).json({message:"Task not found"});
+  }
+  const isCreator =
+    task.user?.toString() === req.user._id.toString();  
+    
+   isAssignedUser =
+    task.assignedTo?.toString() === req.user._id.toString(); 
 
+   if (!isCreator && !isAssignedUser) {
+      return res.status(403).json({
+        message: "Not authorized",
+      });
+    }
+
+    task.title=req.body.title??task.title;
+    task.description=req.body.description??task.description;
+    task.amount=req.body.amount??task.amount;
+    task.category=req.body.category??task.category;
+    task.taskDate=req.body.taskDate??task.taskDate;
+    task.priority=req.body.priority??task.priority;
+  
+  await task.save();
+  const updateTask= await Task.findById(req.params.id)
+  .populate("category","name");
+  
+  res.json(updateTask);
+}
+  catch (error){
+    console.error("UPDATE TASK ERROR:");
+    console.error(error); 
+    res.status(500).json({
+      message: error.message,
+    })  
+}
+}
 // -----------Update status-------------------------
-exports.updateTask = async (req, res) => {
+exports.updateTaskStatus = async (req, res) => {
   try {
 
     const task = await Task.findById(req.params.id);
