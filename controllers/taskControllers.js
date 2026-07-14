@@ -253,7 +253,7 @@ try {
   const isCreator =
     task.user?.toString() === req.user._id.toString();  
     
-   isAssignedUser =
+  const isAssignedUser =
     task.assignedTo?.toString() === req.user._id.toString(); 
 
    if (!isCreator && !isAssignedUser) {
@@ -261,6 +261,7 @@ try {
         message: "Not authorized",
       });
     }
+    console.log("REQ BODY:", req.body);
 
     task.title=req.body.title??task.title;
     task.description=req.body.description??task.description;
@@ -272,7 +273,7 @@ try {
   await task.save();
   const updateTask= await Task.findById(req.params.id)
   .populate("category","name");
-  
+  console.log("UPDATED TASK:", task);
   res.json(updateTask);
 }
   catch (error){
