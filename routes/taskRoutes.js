@@ -50,7 +50,7 @@ router.get(
   getWorkspaceTasks
 );
 
-router.put("/:id", updateTaskStatus);
+router.patch("/:id/status",updateTaskStatus);
 router.put("/update/:id", updateTask);
 
 router.put(

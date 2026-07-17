@@ -285,47 +285,68 @@ try {
 }
 }
 // -----------Update status-------------------------
-exports.updateTaskStatus = async (req, res) => {
+// exports.updateTaskStatus = async (req, res) => {
+//   try {
+
+//     const task = await Task.findById(req.params.id);
+
+//     if (!task) {
+//       return res.status(404).json({ message: 'Task not found' });
+//     }
+//     console.log("req.user:", req.user);
+//     const isCreator =
+//       task.user?.toString() === req.user._id.toString();
+
+//     const isAssignedUser =
+//       task.assignedTo?.toString() === req.user._id.toString();
+
+//     if (!isCreator && !isAssignedUser) {
+//       return res.status(403).json({
+//         message: "Not authorized",
+//       });
+//     }
+
+//     // 🔥 Toggle here
+//     if (task.status === "pending") {
+//       task.status = "completed"
+//       task.completedAt = new Date();
+//     }
+//     else {
+//       task.status = "pending";
+//       task.completedAt = null;
+//     }
+
+//     await task.save();
+
+//     res.json(task);
+//   } catch (error) {
+//     console.error("UPDATE TASK ERROR:");
+//     console.error(error);
+
+//     res.status(500).json({
+//       message: error.message,
+//       stack: error.stack,
+//     });
+//   }
+// };
+exports.updateTaskStatus = async (
+  req,
+  res
+) => {
   try {
+    const { status } = req.body;
 
-    const task = await Task.findById(req.params.id);
-
-    if (!task) {
-      return res.status(404).json({ message: 'Task not found' });
-    }
-    console.log("req.user:", req.user);
-    const isCreator =
-      task.user?.toString() === req.user._id.toString();
-
-    const isAssignedUser =
-      task.assignedTo?.toString() === req.user._id.toString();
-
-    if (!isCreator && !isAssignedUser) {
-      return res.status(403).json({
-        message: "Not authorized",
-      });
-    }
-
-    // 🔥 Toggle here
-    if (task.status === "pending") {
-      task.status = "completed"
-      task.completedAt = new Date();
-    }
-    else {
-      task.status = "pending";
-      task.completedAt = null;
-    }
-
-    await task.save();
+    const task =
+      await Task.findByIdAndUpdate(
+        req.params.id,
+        { status },
+        { new: true }
+      );
 
     res.json(task);
   } catch (error) {
-    console.error("UPDATE TASK ERROR:");
-    console.error(error);
-
     res.status(500).json({
       message: error.message,
-      stack: error.stack,
     });
   }
 };
