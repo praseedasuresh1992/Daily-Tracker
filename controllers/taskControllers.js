@@ -46,6 +46,39 @@ exports.createTask = async (req, res) => {
     });
   }
 };
+// ---------Import task------------
+exports.importTask=()=>{
+  try{
+    const task=[];
+
+    fs.createReadStream(req.file.path)
+    .pipe(csv())
+    .on("data", (row)=>{
+      task.push({
+        title:row.title,
+        description:row.description,
+        amount:Number(row.amount),
+        status:row.status||"pending",
+        priority:row.priority||"medium",
+        taskDate:row.taskDate,
+      })
+    })
+    .on("end",async()=>{
+      await Task.insertMany(task);
+
+      fs.unlinkSync(req.file.path);
+
+        res.status(201).json({
+          message:`$tasks.length task imported successfully`,
+          })
+        })
+  } catch(error){
+    res.status(500).json({
+      message:error.message,
+    });
+  }
+}
+
 // ----------Restore task------------------------
 exports.restoreTask = async (req, res) => {
   try {
