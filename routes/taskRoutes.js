@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-
+const csvUpload=require("../middleware/CSVUpload")
 const upload = require("../middleware/upload");
 const {authUser} = require("../middleware/authMiddleware");
 const multer=require("multer");
@@ -31,8 +31,8 @@ router.post(
 // import csv file of task
 router.post(
   "/import",
-  upload.single("file"),
-  importTasks
+  csvUpload.single("file"),
+  importTask
 );
 
 router.get("/personal", getPersonalTasks);

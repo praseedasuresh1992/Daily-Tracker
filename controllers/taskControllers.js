@@ -1,6 +1,7 @@
 const Task = require('../models/Task');
 const fs = require("fs");
 const path = require("path");
+const csv = require("csv-parser");
 
 // ----------Create task-------------------------
 exports.createTask = async (req, res) => {
@@ -47,37 +48,58 @@ exports.createTask = async (req, res) => {
   }
 };
 // ---------Import task------------
-exports.importTask=()=>{
-  try{
-    const task=[];
+
+exports.importTask = async (req, res) => {
+  try {
+    console.log("import task triggered")
+    const tasks = [];
+
+
+    if (!req.file) {
+  return res.status(400).json({
+    message: "Please upload a CSV file.",
+  });
+}
+console.log(req.file);
 
     fs.createReadStream(req.file.path)
-    .pipe(csv())
-    .on("data", (row)=>{
-      task.push({
-        title:row.title,
-        description:row.description,
-        amount:Number(row.amount),
-        status:row.status||"pending",
-        priority:row.priority||"medium",
-        taskDate:row.taskDate,
+      .pipe(csv())
+      .on("data", (row) => {
+        tasks.push({
+          title: row.title,
+          description: row.description,
+          amount: Number(row.amount),
+          status: row.status || "pending",
+          priority: row.priority || "medium",
+          taskDate: row.taskDate,
+          user: req.user.id, // important
+        });
       })
-    })
-    .on("end",async()=>{
-      await Task.insertMany(task);
+      .on("end", async () => {
+        try {
+          console.log(tasks);
+console.log("Total tasks:", tasks.length);
+          await Task.insertMany(tasks);
 
-      fs.unlinkSync(req.file.path);
+          fs.unlinkSync(req.file.path);
 
-        res.status(201).json({
-          message:`$tasks.length task imported successfully`,
-          })
-        })
-  } catch(error){
+          res.status(201).json({
+            success: true,
+            message: `${tasks.length} tasks imported successfully`,
+          });
+        } catch (err) {
+          res.status(500).json({
+            message: err.message,
+          });
+        }
+      });
+  } catch (error) {
     res.status(500).json({
-      message:error.message,
+      message: error.message,
     });
+   
   }
-}
+};
 
 // ----------Restore task------------------------
 exports.restoreTask = async (req, res) => {
