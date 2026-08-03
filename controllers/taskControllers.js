@@ -56,11 +56,11 @@ exports.importTask = async (req, res) => {
 
 
     if (!req.file) {
-  return res.status(400).json({
-    message: "Please upload a CSV file.",
-  });
-}
-console.log(req.file);
+      return res.status(400).json({
+        message: "Please upload a CSV file.",
+      });
+    }
+    console.log(req.file);
 
     fs.createReadStream(req.file.path)
       .pipe(csv())
@@ -78,7 +78,7 @@ console.log(req.file);
       .on("end", async () => {
         try {
           console.log(tasks);
-console.log("Total tasks:", tasks.length);
+          console.log("Total tasks:", tasks.length);
           await Task.insertMany(tasks);
 
           fs.unlinkSync(req.file.path);
@@ -97,7 +97,7 @@ console.log("Total tasks:", tasks.length);
     res.status(500).json({
       message: error.message,
     });
-   
+
   }
 };
 
@@ -145,7 +145,7 @@ exports.getPersonalTasks = async (req, res) => {
     }
 
     const tasks = await Task.find(filter)
-      .populate("category","name ")
+      .populate("category", "name ")
 
     res.json(tasks);
   } catch (error) {
@@ -299,112 +299,84 @@ exports.uploadAttachment = async (req, res) => {
   }
 };
 // ------------Update task-----------------------
-exports.updateTask= async (req,res)=>{
-try {
-  const task= await Task.findById(req.params.id);
-  if(!task){
-    return res.status(404).json({message:"Task not found"});
-  }
-  const isCreator =
-    task.user?.toString() === req.user._id.toString();  
-    
-  const isAssignedUser =
-    task.assignedTo?.toString() === req.user._id.toString(); 
+exports.updateTask = async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id);
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+    const isCreator =
+      task.user?.toString() === req.user._id.toString();
 
-   if (!isCreator && !isAssignedUser) {
+    const isAssignedUser =
+      task.assignedTo?.toString() === req.user._id.toString();
+
+    if (!isCreator && !isAssignedUser) {
       return res.status(403).json({
         message: "Not authorized",
       });
     }
     console.log("REQ BODY:", req.body);
 
-    task.title=req.body.title??task.title;
-    task.description=req.body.description??task.description;
-    task.amount=req.body.amount??task.amount;
-    task.category=req.body.category??task.category;
-    task.taskDate=req.body.taskDate??task.taskDate;
-    task.priority=req.body.priority??task.priority;
-  
-  await task.save();
-  const updateTask= await Task.findById(req.params.id)
-  .populate("category","name");
-  console.log("UPDATED TASK:", task);
-  res.json(updateTask);
-}
-  catch (error){
+    task.title = req.body.title ?? task.title;
+    task.description = req.body.description ?? task.description;
+    task.amount = req.body.amount ?? task.amount;
+    task.category = req.body.category ?? task.category;
+    task.taskDate = req.body.taskDate ?? task.taskDate;
+    task.priority = req.body.priority ?? task.priority;
+
+    await task.save();
+    const updateTask = await Task.findById(req.params.id)
+      .populate("category", "name");
+    console.log("UPDATED TASK:", task);
+    res.json(updateTask);
+  }
+  catch (error) {
     console.error("UPDATE TASK ERROR:");
-    console.error(error); 
+    console.error(error);
     res.status(500).json({
       message: error.message,
-    })  
-}
+    })
+  }
 }
 // -----------Update status-------------------------
-// exports.updateTaskStatus = async (req, res) => {
-//   try {
-
-//     const task = await Task.findById(req.params.id);
-
-//     if (!task) {
-//       return res.status(404).json({ message: 'Task not found' });
-//     }
-//     console.log("req.user:", req.user);
-//     const isCreator =
-//       task.user?.toString() === req.user._id.toString();
-
-//     const isAssignedUser =
-//       task.assignedTo?.toString() === req.user._id.toString();
-
-//     if (!isCreator && !isAssignedUser) {
-//       return res.status(403).json({
-//         message: "Not authorized",
-//       });
-//     }
-
-//     // 🔥 Toggle here
-//     if (task.status === "pending") {
-//       task.status = "completed"
-//       task.completedAt = new Date();
-//     }
-//     else {
-//       task.status = "pending";
-//       task.completedAt = null;
-//     }
-
-//     await task.save();
-
-//     res.json(task);
-//   } catch (error) {
-//     console.error("UPDATE TASK ERROR:");
-//     console.error(error);
-
-//     res.status(500).json({
-//       message: error.message,
-//       stack: error.stack,
-//     });
-//   }
-// };
-exports.updateTaskStatus = async (
-  req,
-  res
-) => {
+exports.updateTaskStatus = async (req, res) => {
   try {
     const { status } = req.body;
+    const task = await Task.findById(req.params.id);
 
-    const task =
-      await Task.findByIdAndUpdate(
-        req.params.id,
-        { status },
-        { new: true }
-      );
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+    const isCreator =
+      task.user?.toString() === req.user._id.toString();
+
+    const isAssignedUser =
+      task.assignedTo?.toString() === req.user._id.toString();
+
+    if (!isCreator && !isAssignedUser) {
+      return res.status(403).json({
+        message: "Not authorized",
+      });
+    }
+    task.status = status;
+    task.completedAt = status === "completed"
+      ? new Date() : null;
+
+    await task.save();
 
     res.json(task);
   } catch (error) {
+    console.error("UPDATE TASK ERROR:");
+    console.error(error);
+
     res.status(500).json({
       message: error.message,
+      stack: error.stack,
     });
   }
 };
+
 //-------------Delete-------------------------------
 exports.deleteTask = async (req, res) => {
   try {
