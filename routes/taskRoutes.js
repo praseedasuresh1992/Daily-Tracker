@@ -13,9 +13,9 @@ const {
   getMonthlyCategorySummary,
   getPersonalTasks,
   getWorkspaceTasks,
+  getTrashTasks,
   permanentDeleteTask,
   restoreTask,
-  getTrashTasks,
   deleteAttachment,
   addAttachments
 } = require("../controllers/taskControllers");
@@ -50,7 +50,7 @@ router.delete(
   deleteAttachment
 );
 
-// router.get("/trash", getTrashTasks);
+ router.get("/trash", getTrashTasks);
 
 router.get(
   "/workspace/:workspaceId",

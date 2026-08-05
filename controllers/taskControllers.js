@@ -136,7 +136,7 @@ exports.getPersonalTasks = async (req, res) => {
       workspace: null,
       isDeleted: false,
     };
-
+  
     if (
       status &&
       status !== "all"
@@ -151,7 +151,7 @@ exports.getPersonalTasks = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: error.message,
-    });
+    });g
   }
 };
 // ----------add attachment--------------
@@ -342,7 +342,6 @@ exports.updateTask = async (req, res) => {
 // -----------Update status-------------------------
 exports.updateTaskStatus = async (req, res) => {
   try {
-    const { status } = req.body;
     const task = await Task.findById(req.params.id);
 
     if (!task) {
@@ -359,10 +358,17 @@ exports.updateTaskStatus = async (req, res) => {
         message: "Not authorized",
       });
     }
-    task.status = status;
-    task.completedAt = status === "completed"
-      ? new Date() : null;
+   task.status =
+  task.status === "pending"
+    ? "completed"
+    : "pending";
 
+task.completedAt =
+  task.status === "completed"
+    ? new Date()
+    : null;
+console.log("UPDATED TASK STATUS:", task);
+console.log("UPDATED TASK STATUS:", task.status);
     await task.save();
 
     res.json(task);
@@ -449,3 +455,15 @@ exports.getMonthlyCategorySummary = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+exports.getTrashTasks = async (req, res) => {
+  try {
+    const tasks = await Task.find({
+      user: req.user.id,
+      isDeleted: true,
+    }).populate("category", "name");
+    res.json(tasks);
+  } catch (error) {
+    console.log("Error fetching trash tasks:", error);
+    res.status(500).json({ message: error.message });
+  }
+};  
