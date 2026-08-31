@@ -1,8 +1,9 @@
-const Task = require('../models/Task');
+const Task = require("../models/Task");
 const fs = require("fs");
 const path = require("path");
 const csv = require("csv-parser");
 
+const { createActivityLog } = require("../Services/ActivityLogService")
 // ----------Create task-------------------------
 exports.createTask = async (req, res) => {
   try {
@@ -37,6 +38,16 @@ exports.createTask = async (req, res) => {
       workspace,
       attachments,
     });
+    
+    if (workspace) {
+  await createActivityLog({
+    workspace,
+    user: req.user._id,
+    task: task._id,
+    action: "created",
+    taskTitle: task.title,
+  });
+}
 
     res.status(201).json(task);
   } catch (error) {

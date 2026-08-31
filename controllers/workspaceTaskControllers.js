@@ -1,5 +1,6 @@
 const Task = require("../models/Task");
 const Workspace = require("../models/Workspace");
+const { createActivityLog } = require("../Services/ActivityLogService");
 
 exports.createWorkspaceTask = async (req, res) => {
   try {
@@ -31,18 +32,28 @@ exports.createWorkspaceTask = async (req, res) => {
       assignedTo,
       priority,
       dueDate,
-
       workspace: workspaceId,
       user: req.user._id,
     });
 
+    // Activity Log
+    await createActivityLog({
+      workspace: workspaceId,
+      user: req.user._id,
+      task: task._id,
+      action: "created",
+      taskTitle: task.title,
+    });
+
     res.status(201).json(task);
   } catch (error) {
-  console.log(error);
-  console.log(error.response?.data);
-}
-};
+    console.log(error);
 
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
 exports.getMemberTasks = async (req, res) => {
   try {
     const { workspaceId, memberId } = req.params;
