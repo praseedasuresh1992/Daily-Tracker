@@ -1,90 +1,154 @@
-const Budget = require('../models/budget');
-const Expense = require('../models/expense');
+const Budget = require("../models/Budget");
+const Task = require("../models/Task");
 
+// ==========================================
+// GET MONTHLY BUDGET SUMMARY
 // GET /api/budget
+// ==========================================
 exports.getBudgetSummary = async (req, res) => {
   try {
-    const userId = req.user.id; // set by your auth middleware
+    console.log("Fetching budget summary for user:", req.user.id);
+    const userId = req.user.id;
+console.log(`Fetching budget summary for user ${userId}`);
+    // Find user's budget
+    const budget = await Budget.findOne({
+      user: userId,
+    });
+    console.log(`User ${userId} budget:`, budget);
 
-    const budget = await Budget.findOne({ user: userId });
     const monthlyLimit = budget ? budget.monthlyLimit : 0;
 
+    // Current month start
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
+    // Next month start
     const endOfMonth = new Date(startOfMonth);
     endOfMonth.setMonth(endOfMonth.getMonth() + 1);
 
-    const result = await Expense.aggregate([
-      {
-        $match: {
-          user: budget ? budget.user : userId,
-          date: { $gte: startOfMonth, $lt: endOfMonth },
+    // Get current month's tasks
+const result = await Task.aggregate([
+  {
+    $match: {
+      user: userId,
+
+      // Only current month's tasks
+      taskDate: {
+        $gte: startOfMonth,
+        $lt: endOfMonth,
+      },
+
+      // Only completed tasks
+      status: "completed",
+
+      // Ignore deleted tasks
+      isDeleted: {
+        $ne: true,
+      },
+    },
+  },
+  {
+    $group: {
+      _id: null,
+      total: {
+        $sum: {
+          $toDouble: "$amount",
         },
       },
-      { $group: { _id: null, total: { $sum: '$amount' } } },
-    ]);
+    },
+  },
+]);
+console.log("Aggregation result:", result);
 
-    const spent = result.length > 0 ? result[0].total : 0;
-    const percentUsed = monthlyLimit > 0 ? (spent / monthlyLimit) * 100 : 0;
+    const spent =
+  result.length > 0
+    ? result[0].total
+    : 0;
+    console.log(`User ${userId} spent ${spent} this month`);
+    // Calculate percentage
+    const percentUsed =
+      monthlyLimit > 0
+        ? (spent / monthlyLimit) * 100
+        : 0;
 
-    let status = 'ok';
-    if (percentUsed > 100) status = 'over';
-    else if (percentUsed > 80) status = 'warning';
+    // Determine status
+    let status = "ok";
+
+    if (percentUsed >= 100) {
+      status = "over";
+    } else if (percentUsed >= 80) {
+      status = "warning";
+    }
 
     res.json({
       monthlyLimit,
       spent,
-      percentUsed: Math.round(percentUsed * 10) / 10,
+      percentUsed:
+        Math.round(percentUsed * 10) / 10,
       status,
     });
   } catch (err) {
-    res.status(500).json({ message: 'Failed to load budget summary', error: err.message });
+    console.error("Budget summary error:", err);
+
+    res.status(500).json({
+      message: "Failed to load budget summary",
+      error: err.message,
+    });
   }
 };
 
+
+// ==========================================
+// SET MONTHLY BUDGET
 // PUT /api/budget
+// ==========================================
 exports.setBudgetLimit = async (req, res) => {
   try {
-    const userId = req.user.id;
+const userId = new mongoose.Types.ObjectId(req.user.id);
     const { monthlyLimit } = req.body;
 
-    if (typeof monthlyLimit !== 'number' || monthlyLimit < 0) {
-      return res.status(400).json({ message: 'monthlyLimit must be a positive number' });
+    // Convert string input to number
+    const limit = Number(monthlyLimit);
+
+    // Validate
+    if (
+      Number.isNaN(limit) ||
+      limit < 0
+    ) {
+      return res.status(400).json({
+        message:
+          "Monthly budget must be a valid positive number",
+      });
     }
 
-    const budget = await Budget.findOneAndUpdate(
-      { user: userId },
-      { monthlyLimit },
-      { new: true, upsert: true, runValidators: true }
-    );
+    // Create or update budget
+    const budget =
+      await Budget.findOneAndUpdate(
+        {
+          user: userId,
+        },
+        {
+          user: userId,
+          monthlyLimit: limit,
+        },
+        {
+          new: true,
+          upsert: true,
+          runValidators: true,
+        }
+      );
 
-    res.json(budget);
-  } catch (err) {
-    res.status(500).json({ message: 'Failed to update budget', error: err.message });
-  }
-};
-
-// POST /api/budget/expenses
-exports.addExpense = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const { amount, description, date } = req.body;
-
-    if (typeof amount !== 'number' || amount < 0) {
-      return res.status(400).json({ message: 'amount must be a positive number' });
-    }
-
-    const expense = await Expense.create({
-      user: userId,
-      amount,
-      description,
-      date: date || Date.now(),
+    res.json({
+      message: "Monthly budget updated successfully",
+      budget,
     });
-
-    res.status(201).json(expense);
   } catch (err) {
-    res.status(500).json({ message: 'Failed to add expense', error: err.message });
+    console.error("Set budget error:", err);
+
+    res.status(500).json({
+      message: "Failed to update budget",
+      error: err.message,
+    });
   }
 };

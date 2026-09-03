@@ -27,7 +27,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: "http://localhost:5174",
     credentials: true,
   },
 });
@@ -59,7 +59,7 @@ io.on("connection", (socket) => {
 // CORS
 
 const corsOptions = {
-  origin: ["http://localhost:5173"],
+  origin: ["http://localhost:5174"],
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
@@ -104,6 +104,8 @@ app.use(
 );
 
 app.use("/api/workspaces", require("./routes/workspaceRoutes"))
+
+app.use("/api/budget", require("./routes/budgetRoutes"));
 
 // START SERVER
 
