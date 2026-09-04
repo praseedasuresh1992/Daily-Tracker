@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Budget = require("../models/Budget");
 const Task = require("../models/Task");
 
@@ -31,16 +32,16 @@ console.log(`Fetching budget summary for user ${userId}`);
 const result = await Task.aggregate([
   {
     $match: {
-      user: userId,
-
-      // Only current month's tasks
-      taskDate: {
-        $gte: startOfMonth,
-        $lt: endOfMonth,
-      },
+      user: new mongoose.Types.ObjectId(userId),
 
       // Only completed tasks
       status: "completed",
+
+      // Only tasks completed this month
+      completedAt: {
+        $gte: startOfMonth,
+        $lt: endOfMonth,
+      },
 
       // Ignore deleted tasks
       isDeleted: {
@@ -51,10 +52,10 @@ const result = await Task.aggregate([
   {
     $group: {
       _id: null,
+
+      // Add the amount of completed tasks
       total: {
-        $sum: {
-          $toDouble: "$amount",
-        },
+        $sum: "$amount",
       },
     },
   },
