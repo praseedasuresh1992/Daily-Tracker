@@ -107,6 +107,8 @@ app.use("/api/workspaces", require("./routes/workspaceRoutes"))
 
 app.use("/api/budget", require("./routes/budgetRoutes"));
 
+app.use("/api/workspaces",require("./routes/activityRoutes"));
+
 // START SERVER
 
 server.listen(process.env.PORT || 5000, () => {

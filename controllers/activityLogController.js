@@ -1,6 +1,7 @@
 const ActivityLog = require("../models/ActivityLog");
 
 exports.getWorkspaceActivityLogs = async (req, res) => {
+    console.log("Fetching activity logs for workspace:", req.params.workspaceId);
     try {
         const { workspaceId } = req.params;
 
