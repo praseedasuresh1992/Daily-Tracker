@@ -1,17 +1,16 @@
 const ActivityLog = require("../models/ActivityLog");
 
 exports.getWorkspaceActivityLogs = async (req, res) => {
-    console.log("Fetching activity logs for workspace:", req.params.workspaceId);
     try {
         const { workspaceId } = req.params;
 
         const activities = await ActivityLog.find({
             workspace: workspaceId,
         })
-            .populate("user", "name email")
-            .populate("task", "title")
+            .populate("User", "name email")
+            .populate("Task", "title")
             .sort({ createdAt: -1 });
-
+        console.log("ACTIVITIES:", activities);
         res.status(200).json(activities);
 
     } catch (error) {
