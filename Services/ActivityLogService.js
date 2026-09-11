@@ -17,7 +17,7 @@ const createActivityLog = async ({
     });
   } catch (error) {
     console.error("Activity log error:", error);
-  }const ActivityLog = require("../models/ActivityLog");
+  }
 
 const createActivityLog = async ({
   workspace,

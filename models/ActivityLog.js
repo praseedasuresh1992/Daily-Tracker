@@ -16,7 +16,7 @@ const activityLogSchema = new mongoose.Schema(
 
     task: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Task",
+      ref: "task",
       default: null,
     },
 

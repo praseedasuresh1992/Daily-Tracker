@@ -1,23 +1,27 @@
 const ActivityLog = require("../models/ActivityLog");
 
 exports.getWorkspaceActivityLogs = async (req, res) => {
-    try {
-        const { workspaceId } = req.params;
+  try {
+    const { workspaceId } = req.params;
 
-        const activities = await ActivityLog.find({
-            workspace: workspaceId,
-        })
-            .populate("User", "name email")
-            .populate("Task", "title")
-            .sort({ createdAt: -1 });
-        console.log("ACTIVITIES:", activities);
-        res.status(200).json(activities);
+    console.log("WORKSPACE ID FROM URL:", workspaceId);
 
-    } catch (error) {
-        console.error("GET ACTIVITY LOG ERROR:", error);
+    const allActivities = await ActivityLog.find({});
 
-        res.status(500).json({
-            message: error.message,
-        });
-    }
+    console.log("ALL ACTIVITY LOGS:", allActivities);
+
+    const activities = await ActivityLog.find({
+      workspace: workspaceId,
+    });
+
+    console.log("WORKSPACE ACTIVITIES:", activities);
+
+    res.status(200).json(activities);
+  } catch (error) {
+    console.error("GET ACTIVITY LOG ERROR:", error);
+
+    res.status(500).json({
+      message: error.message,
+    });
+  }
 };
