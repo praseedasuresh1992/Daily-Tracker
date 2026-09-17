@@ -4,17 +4,12 @@ exports.getWorkspaceActivityLogs = async (req, res) => {
   try {
     const { workspaceId } = req.params;
 
-    console.log("WORKSPACE ID FROM URL:", workspaceId);
-
-    const allActivities = await ActivityLog.find({});
-
-    console.log("ALL ACTIVITY LOGS:", allActivities);
-
     const activities = await ActivityLog.find({
       workspace: workspaceId,
-    });
-
-    console.log("WORKSPACE ACTIVITIES:", activities);
+    })
+      .populate("user", "name email")
+      .populate("task", "title")
+      .sort({ createdAt: -1 });
 
     res.status(200).json(activities);
   } catch (error) {

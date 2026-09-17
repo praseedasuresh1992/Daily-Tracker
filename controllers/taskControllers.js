@@ -1,4 +1,5 @@
 const Task = require("../models/Task");
+const Category = require("../models/Category");
 const fs = require("fs");
 const path = require("path");
 const csv = require("csv-parser");
@@ -137,34 +138,105 @@ exports.restoreTask = async (req, res) => {
     });
   }
 };
+
 // ----------Get Personal task--------------------
 exports.getPersonalTasks = async (req, res) => {
   try {
-    const { status } = req.query;
+    const {
+      status,
+      search,
+      fromDate,
+      toDate,
+    } = req.query;
 
     const filter = {
       user: req.user.id,
       workspace: null,
       isDeleted: false,
     };
-  
-    if (
-      status &&
-      status !== "all"
-    ) {
+
+    // ---------------- STATUS FILTER ----------------
+    if (status && status !== "all") {
       filter.status = status;
     }
 
+    // ---------------- DATE FILTER ----------------
+    if (fromDate || toDate) {
+      filter.taskDate = {};
+
+      if (fromDate) {
+        const startDate = new Date(fromDate);
+        startDate.setHours(0, 0, 0, 0);
+
+        filter.taskDate.$gte = startDate;
+      }
+
+      if (toDate) {
+        const endDate = new Date(toDate);
+        endDate.setHours(23, 59, 59, 999);
+
+        filter.taskDate.$lte = endDate;
+      }
+    }
+
+    // ---------------- SEARCH FILTER ----------------
+    if (search && search.trim()) {
+      const searchTerm = search.trim();
+
+      // Search category name first
+      const matchingCategories = await Category.find({
+        user: req.user.id,
+        name: {
+          $regex: searchTerm,
+          $options: "i",
+        },
+      }).select("_id");
+
+      const categoryIds = matchingCategories.map(
+        (category) => category._id
+      );
+
+      filter.$or = [
+        {
+          title: {
+            $regex: searchTerm,
+            $options: "i",
+          },
+        },
+        {
+          description: {
+            $regex: searchTerm,
+            $options: "i",
+          },
+        },
+      ];
+
+      // Add category search only when matching categories exist
+      if (categoryIds.length > 0) {
+        filter.$or.push({
+          category: {
+            $in: categoryIds,
+          },
+        });
+      }
+    }
+
+    console.log("PERSONAL TASK FILTER:", filter);
+
     const tasks = await Task.find(filter)
-      .populate("category", "name ")
+      .populate("category", "name");
 
     res.json(tasks);
   } catch (error) {
+    console.error("GET PERSONAL TASKS ERROR:", error);
+
     res.status(500).json({
       message: error.message,
-    });g
+    });
   }
 };
+
+
 // ----------add attachment--------------
 exports.addAttachments = async (
   req,
